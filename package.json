@@ -1,0 +1,19 @@
+{
+  "name": "deepseek-mobile",
+  "version": "1.0.3",
+  "private": true,
+  "description": "A mobile-first DeepSeek chat client (PWA) powered by your own API key.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.mjs --open",
+    "serve": "node server.mjs",
+    "test": "node tests/core.test.mjs",
+    "build": "node tools/build-single.mjs",
+    "mock": "node tools/mock-server.mjs",
+    "e2e": "node tools/e2e.mjs",
+    "icons": "python tools/make-icons.py"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

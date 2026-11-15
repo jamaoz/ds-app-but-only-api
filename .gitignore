@@ -1,0 +1,9 @@
+.tmp-edge/
+.android-build/
+android/build/
+android/assets/www/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+screenshots/_crop*

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>DeepSeek 手机版</title>
+  <meta name="description" content="使用你自己的 DeepSeek API Key，在手机上聊天、深度思考、联网搜索。">
+  <meta name="theme-color" content="#f6f8fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DeepSeek">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="color-scheme" content="light dark">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="src/app.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="offline-bar" id="offlineBar" hidden>
+      <span data-icon="wifiOff"></span>
+      <span data-i18n="offline">网络已断开</span>
+    </div>
+
+    <!-- ============================ Onboarding ============================ -->
+    <section class="onboarding" id="onboarding" aria-labelledby="onboardingTitle">
+      <div class="onboarding-glow" aria-hidden="true"></div>
+      <div class="onboarding-card">
+        <div class="brand-mark" id="brandMark" aria-hidden="true"></div>
+        <h1 class="onboarding-title" id="onboardingTitle" data-i18n="appName">DeepSeek 手机版</h1>
+        <p class="onboarding-sub" data-i18n="tagline">用你自己的 API Key，在手机上随时对话、深度思考、联网搜索。</p>
+
+        <form class="key-form" id="keyForm" novalidate>
+          <label class="field-label" for="apiKeyInput" data-i18n="apiKey">API Key</label>
+          <div class="input-wrap">
+            <span class="input-icon" data-icon="key"></span>
+            <input id="apiKeyInput" class="text-input has-icon" type="password" inputmode="text"
+                   autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                   placeholder="sk-...">
+            <button type="button" class="input-btn" id="toggleKey" aria-label="显示" data-i18n-aria="showKey">
+              <span data-icon="eye"></span>
+            </button>
+          </div>
+
+          <details class="advanced" id="advancedBox">
+            <summary data-i18n="advanced">高级设置</summary>
+            <label class="field-label" for="baseUrlInput" data-i18n="apiBase">API 地址</label>
+            <input id="baseUrlInput" class="text-input" type="url" inputmode="url"
+                   autocomplete="off" autocapitalize="off" spellcheck="false"
+                   value="https://api.deepseek.com">
+          </details>
+
+          <p class="form-error" id="keyError" role="alert" hidden></p>
+
+          <button class="btn-primary" id="startBtn" type="submit">
+            <span class="btn-label" data-i18n="start">开始使用</span>
+            <span class="spinner" id="startSpinner" hidden></span>
+          </button>
+
+          <a class="onboarding-link" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer">
+            <span data-i18n="getKey">还没有 API Key？前往 DeepSeek 开放平台获取</span>
+            <span data-icon="external"></span>
+          </a>
+          <p class="privacy-note">
+            <span data-icon="shield"></span>
+            <span data-i18n="privacyNote">Key 只保存在此设备的浏览器中，不会上传到任何第三方服务器。</span>
+          </p>
+        </form>
+      </div>
+      <p class="onboarding-foot" data-i18n="onboardingFoot">非官方客户端 · 使用 DeepSeek 官方 API</p>
+    </section>
+
+    <!-- ============================== Main ============================== -->
+    <div class="main" id="appMain" hidden>
+      <header class="topbar" id="topbar">
+        <button class="icon-btn" id="btnMenu" aria-label="历史记录" data-i18n-aria="history">
+          <span data-icon="menu"></span>
+        </button>
+        <div class="topbar-center">
+          <button class="topbar-title" id="btnTitle" title="新对话">
+            <span id="topbarTitle">新对话</span>
+          </button>
+          <button class="topbar-model" id="btnModel" aria-label="选择模型" data-i18n-aria="modelSection">
+            <span id="topbarModel">deepseek-flash</span>
+          </button>
+        </div>
+        <button class="icon-btn" id="btnNewChat" aria-label="新对话" data-i18n-aria="newChat">
+          <span data-icon="plus"></span>
+        </button>
+        <button class="icon-btn" id="btnMore" aria-label="更多" aria-haspopup="menu">
+          <span data-icon="more"></span>
+        </button>
+        <div class="stream-bar" id="streamBar" hidden></div>
+      </header>
+
+      <main class="scroller" id="scroller">
+        <div class="content" id="content">
+          <section class="welcome" id="welcome">
+            <div class="welcome-mark" id="welcomeMark" aria-hidden="true"></div>
+            <h2 class="welcome-title" id="welcomeTitle" data-i18n="welcomeTitle">晚上好，今天想做点什么？</h2>
+            <p class="welcome-sub" data-i18n="welcomeSub">选择一种开始，或直接输入你的问题</p>
+            <div class="suggestions" id="suggestions">
+              <button class="suggestion" data-prompt="用 Python 写一个简单的网页爬虫，抓取标题和正文，并处理异常。">
+                <span class="suggestion-icon"><span data-icon="sparkles"></span></span>
+                <span class="suggestion-text"><b data-i18n="suggestion1">写一段代码</b><small data-i18n="suggestion1sub">用 Python 写一个爬虫</small></span>
+              </button>
+              <button class="suggestion" data-prompt="用简单的比喻解释一下量子纠缠，让高中生也能听懂。">
+                <span class="suggestion-icon"><span data-icon="bulb"></span></span>
+                <span class="suggestion-text"><b data-i18n="suggestion2">解释一个概念</b><small data-i18n="suggestion2sub">用简单的比喻解释量子纠缠</small></span>
+              </button>
+              <button class="suggestion" data-prompt="帮我润色下面这段文字，让它更专业、更有说服力：\n\n">
+                <span class="suggestion-icon"><span data-icon="edit"></span></span>
+                <span class="suggestion-text"><b data-i18n="suggestion3">润色一段文字</b><small data-i18n="suggestion3sub">让这段求职信更专业</small></span>
+              </button>
+              <button class="suggestion" data-prompt="帮我制定一个三天两夜的杭州旅行计划，包含交通、住宿建议和每天的行程安排。">
+                <span class="suggestion-icon"><span data-icon="folder"></span></span>
+                <span class="suggestion-text"><b data-i18n="suggestion4">制定一个计划</b><small data-i18n="suggestion4sub">帮我安排三天杭州旅行</small></span>
+              </button>
+            </div>
+          </section>
+          <div class="messages" id="messages" aria-live="polite"></div>
+          <div class="bottom-spacer"></div>
+        </div>
+      </main>
+
+      <button class="scroll-bottom" id="scrollBottom" aria-label="回到底部" hidden>
+        <span data-icon="arrowDown"></span>
+      </button>
+
+      <div class="composer-wrap" id="composerWrap">
+        <div class="install-banner" id="installBanner" hidden>
+          <div class="install-icon"><span data-icon="install"></span></div>
+          <div class="install-text"><b data-i18n="installHint">把这个应用添加到桌面，随时一键打开</b></div>
+          <button class="btn-small" id="installBtn" data-i18n="installBtn">安装</button>
+          <button class="icon-btn tiny" id="installClose" aria-label="关闭"><span data-icon="close"></span></button>
+        </div>
+
+        <div class="attachments" id="attachments" hidden></div>
+
+        <form class="composer" id="composer">
+          <label class="sr-only" for="input">消息</label>
+          <textarea id="input" rows="1" placeholder="给 DeepSeek 发送消息" data-i18n-ph="inputPlaceholder" enterkeyhint="enter"
+                    autocomplete="off" autocapitalize="sentences" spellcheck="false"></textarea>
+          <div class="composer-row">
+            <div class="chips" id="chips">
+              <button type="button" class="chip" id="chipThink" aria-pressed="true">
+                <span data-icon="bulb"></span><span class="chip-label" data-i18n="thinking">深度思考</span>
+              </button>
+              <button type="button" class="chip" id="chipSearch" aria-pressed="false">
+                <span data-icon="globe"></span><span class="chip-label" data-i18n="search">联网搜索</span>
+              </button>
+            </div>
+            <div class="composer-btns">
+              <button type="button" class="icon-btn" id="btnAttach" aria-label="添加文件" data-i18n-aria="attach">
+                <span data-icon="paperclip"></span>
+              </button>
+              <button type="button" class="icon-btn" id="btnMic" aria-label="语音输入" data-i18n-aria="voice">
+                <span data-icon="mic"></span>
+              </button>
+              <button type="button" class="send-btn" id="btnSend" aria-label="发送" data-i18n-aria="send" disabled>
+                <span class="send-icon" data-icon="send"></span>
+                <span class="stop-icon" data-icon="stop" hidden></span>
+              </button>
+            </div>
+          </div>
+        </form>
+        <p class="disclaimer" data-i18n="disclaimer">内容由 AI 生成，请仔细甄别</p>
+      </div>
+    </div>
+
+    <!-- ============================ Overlays ============================ -->
+    <div class="scrim" id="scrim" hidden></div>
+
+    <aside class="drawer" id="drawer" aria-label="历史记录" aria-hidden="true">
+      <div class="drawer-head">
+        <div class="drawer-brand"><span class="brand-mini" id="drawerBrand" aria-hidden="true"></span><span>DeepSeek</span></div>
+        <button class="icon-btn" id="drawerClose" aria-label="关闭"><span data-icon="close"></span></button>
+      </div>
+      <button class="new-chat-btn" id="drawerNew">
+        <span data-icon="plus"></span><span data-i18n="newChat">新对话</span>
+      </button>
+      <div class="drawer-search">
+        <span data-icon="search"></span>
+        <input id="historySearch" type="search" placeholder="搜索对话" data-i18n-ph="searchHistory" autocomplete="off">
+      </div>
+      <div class="session-list" id="sessionList"></div>
+      <div class="drawer-foot">
+        <button class="drawer-foot-btn" id="drawerSettings">
+          <span data-icon="settings"></span><span data-i18n="settings">设置</span>
+        </button>
+        <span class="storage-info" id="storageInfo"></span>
+      </div>
+    </aside>
+
+    <section class="sheet" id="settingsSheet" aria-hidden="true" aria-label="设置">
+      <div class="sheet-grab" aria-hidden="true"></div>
+      <header class="sheet-head">
+        <h2 data-i18n="settings">设置</h2>
+        <button class="icon-btn" id="settingsClose" aria-label="关闭"><span data-icon="close"></span></button>
+      </header>
+      <div class="sheet-body" id="settingsBody"></div>
+    </section>
+
+    <div class="popover" id="morePopover" role="menu" hidden>
+      <button role="menuitem" data-action="rename"><span data-icon="edit"></span><span data-i18n="rename">重命名</span></button>
+      <button role="menuitem" data-action="exportChat"><span data-icon="download"></span><span data-i18n="exportChat">导出当前对话</span></button>
+      <button role="menuitem" data-action="clearChat"><span data-icon="trash"></span><span data-i18n="clearChat">清空当前对话</span></button>
+      <button role="menuitem" data-action="settings"><span data-icon="settings"></span><span data-i18n="settings">设置</span></button>
+      <button role="menuitem" data-action="install"><span data-icon="install"></span><span data-i18n="install">安装到主屏幕</span></button>
+      <button role="menuitem" data-action="about"><span data-icon="info"></span><span data-i18n="about">关于</span></button>
+    </div>
+
+    <div class="tts-bar" id="ttsBar" hidden>
+      <button class="icon-btn tiny" id="ttsToggle" aria-label="暂停"><span data-icon="pause"></span></button>
+      <div class="tts-info">
+        <span class="tts-title" id="ttsTitle">朗读中…</span>
+        <span class="tts-sub" id="ttsSub">DeepSeek</span>
+      </div>
+      <button class="icon-btn tiny" id="ttsStop" aria-label="关闭"><span data-icon="close"></span></button>
+    </div>
+
+    <div class="modal-layer" id="recorderLayer" hidden>
+      <div class="recorder-card" role="dialog" aria-modal="true" aria-label="语音输入">
+        <div class="rec-status"><span class="rec-dot"></span><span id="recStatus">正在聆听…</span></div>
+        <div class="wave" id="recWave" aria-hidden="true"></div>
+        <div class="rec-time" id="recTime">0:00</div>
+        <p class="rec-hint" data-i18n="recHint">点击完成结束录音</p>
+        <div class="rec-actions">
+          <button class="btn-ghost" id="recCancel" data-i18n="cancel">取消</button>
+          <button class="btn-primary compact" id="recDone"><span id="recDoneLabel" data-i18n="done">完成</span><span class="spinner" id="recSpinner" hidden></span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-layer" id="dialogHost" hidden></div>
+    <div class="toast-host" id="toastHost" aria-live="polite"></div>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,text/markdown,text/csv,application/json,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub,.txt,.md,.csv,.json,.log,.py,.js,.ts,.html,.css,.java,.go,.rs,.c,.cpp" multiple hidden>
+  </div>
+
+  <noscript>
+    <div style="padding:24px;font-family:sans-serif">此应用需要启用 JavaScript。</div>
+  </noscript>
+
+  <script src="src/core.js"></script>
+  <script src="src/icons.js"></script>
+  <script src="src/app.js"></script>
+  <script src="src/voice.js"></script>
+  <script src="src/chat.js"></script>
+  <script src="src/settings.js"></script>
+  <script src="src/history.js"></script>
+</body>
+</html>
